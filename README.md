@@ -2,7 +2,7 @@
 
 An interactive single-page knowledge graph that maps the full technology stack behind perceptual intelligence systems — from raw sensor input to emotional computing.
 
-**🔗 [Live Preview → Click here to view the interactive page](https://sylvie7506.github.io/perceptual-intelligence-map/)**
+### 🔗 Live Preview: https://sylvie7506.github.io/perceptual-intelligence-map/
 
 ## What is this?
 
