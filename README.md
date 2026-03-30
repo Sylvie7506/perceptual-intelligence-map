@@ -2,6 +2,8 @@
 
 An interactive single-page knowledge graph that maps the full technology stack behind perceptual intelligence systems — from raw sensor input to emotional computing.
 
+**🔗 [Live Preview → Click here to view the interactive page](https://sylvie7506.github.io/perceptual-intelligence-map/)**
+
 ## What is this?
 
 This project organizes the complex landscape of perceptual intelligence into five interconnected layers:
@@ -16,7 +18,7 @@ Each layer contains expandable modules with detailed technical explanations, cor
 
 ## How to use
 
-Open `index.html` in any modern browser. No installation, no dependencies, no internet connection required.
+**[→ Open the live page here](https://sylvie7506.github.io/perceptual-intelligence-map/)**, or download `index.html` and open it in any modern browser. No installation, no dependencies, no internet connection required.
 
 - Click any layer on the landing page to expand its technology modules
 - Use the sticky navigation bar to jump between layers
