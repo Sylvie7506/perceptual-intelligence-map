@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>感知智能技术图谱 — 从感官到共情</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fafaf7;--bg2:#f0efe9;--bg3:#e8e7e0;
+  --card:#ffffff;--card-hover:#fdfcfa;
+  --text:#1a1a18;--text2:#5a5950;--text3:#8a897e;
+  --border:#dddcd4;--border2:#c8c7be;
+  --accent1:#0a8a5c;--accent2:#1a6fb5;--accent3:#7b4fc4;
+  --accent4:#c07a18;--accent5:#c43f5c;
+  --glow1:rgba(10,138,92,.07);--glow2:rgba(26,111,181,.07);
+  --glow3:rgba(123,79,196,.07);--glow4:rgba(192,122,24,.07);
+  --glow5:rgba(196,63,92,.07);
+  --a1-light:#e6f5ef;--a2-light:#e4f0fa;--a3-light:#f0e8fa;
+  --a4-light:#faf0e0;--a5-light:#fae8ec;
+  --radius:10px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans SC',sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.75;overflow-x:hidden;
+}
+
+/* === FLOW BAR === */
+.flow-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,250,247,.88);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:.6rem 1rem;display:flex;justify-content:center;gap:.25rem;
+}
+.flow-btn{
+  font-family:'Noto Sans SC',sans-serif;font-size:.78rem;font-weight:500;
+  padding:.4rem .9rem;border-radius:99px;border:1px solid transparent;cursor:pointer;
+  background:transparent;color:var(--text3);transition:all .25s;white-space:nowrap;
+}
+.flow-btn:hover{color:var(--text);background:var(--bg2)}
+.flow-btn.active{color:#fff;font-weight:700;border-color:transparent}
+.flow-btn[data-layer="top"].active{background:var(--text);color:#fff}
+.flow-btn[data-layer="0"].active{background:var(--accent1)}
+.flow-btn[data-layer="1"].active{background:var(--accent2)}
+.flow-btn[data-layer="2"].active{background:var(--accent3)}
+.flow-btn[data-layer="3"].active{background:var(--accent4)}
+.flow-btn[data-layer="4"].active{background:var(--accent5)}
+.flow-arrow{color:var(--text3);font-size:.65rem;display:flex;align-items:center;padding:0 .1rem}
+
+/* === MIND MAP HERO === */
+.mind-map-hero{
+  padding:2rem 1.5rem 1.5rem;max-width:900px;margin:0 auto;
+  min-height:calc(100vh - 52px);display:flex;flex-direction:column;justify-content:center;
+}
+.mind-map-hero h1{font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:.4rem}
+.mind-map-hero .subtitle{
+  text-align:center;font-size:.82rem;color:var(--text2);margin-bottom:1.8rem;
+  max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7;
+}
+
+/* Collapsible mind map tree */
+.mm-tree{display:flex;flex-direction:column;gap:0}
+.mm-branch{border-radius:var(--radius);margin-bottom:.5rem;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+.mm-branch-head{
+  display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;
+  cursor:pointer;transition:background .2s;user-select:none;
+}
+.mm-branch-head:hover{background:var(--bg2)}
+.mm-branch.open .mm-branch-head{border-bottom:1px solid var(--border)}
+.mm-branch-num{
+  font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:#fff;
+}
+.mm-branch[data-l="0"] .mm-branch-num{background:var(--accent1)}
+.mm-branch[data-l="1"] .mm-branch-num{background:var(--accent2)}
+.mm-branch[data-l="2"] .mm-branch-num{background:var(--accent3)}
+.mm-branch[data-l="3"] .mm-branch-num{background:var(--accent4)}
+.mm-branch[data-l="4"] .mm-branch-num{background:var(--accent5)}
+.mm-branch-title{flex:1}
+.mm-branch-title strong{font-size:.92rem;display:block;line-height:1.3}
+.mm-branch[data-l="0"] .mm-branch-title strong{color:var(--accent1)}
+.mm-branch[data-l="1"] .mm-branch-title strong{color:var(--accent2)}
+.mm-branch[data-l="2"] .mm-branch-title strong{color:var(--accent3)}
+.mm-branch[data-l="3"] .mm-branch-title strong{color:var(--accent4)}
+.mm-branch[data-l="4"] .mm-branch-title strong{color:var(--accent5)}
+.mm-branch-title span{font-size:.72rem;color:var(--text3);font-family:'Space Mono',monospace}
+.mm-branch-arrow{
+  font-size:.75rem;color:var(--text3);transition:transform .3s;flex-shrink:0;
+}
+.mm-branch.open .mm-branch-arrow{transform:rotate(90deg)}
+
+.mm-leaves{
+  max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);
+}
+.mm-branch.open .mm-leaves{max-height:500px}
+.mm-leaves-inner{
+  padding:.65rem 1rem .75rem 3.5rem;
+  display:flex;flex-wrap:wrap;gap:.4rem;
+}
+.mm-leaf{
+  font-size:.75rem;padding:.3rem .7rem;border-radius:99px;
+  border:1px solid;
+}
+.mm-branch[data-l="0"] .mm-leaf{color:var(--accent1);border-color:rgba(10,138,92,.25);background:var(--a1-light)}
+.mm-branch[data-l="1"] .mm-leaf{color:var(--accent2);border-color:rgba(26,111,181,.25);background:var(--a2-light)}
+.mm-branch[data-l="2"] .mm-leaf{color:var(--accent3);border-color:rgba(123,79,196,.25);background:var(--a3-light)}
+.mm-branch[data-l="3"] .mm-leaf{color:var(--accent4);border-color:rgba(192,122,24,.25);background:var(--a4-light)}
+.mm-branch[data-l="4"] .mm-leaf{color:var(--accent5);border-color:rgba(196,63,92,.25);background:var(--a5-light)}
+
+.mm-goto{
+  font-size:.72rem;padding:.3rem .7rem;border-radius:99px;
+  cursor:pointer;transition:all .2s;border:1px solid var(--border);
+  color:var(--text3);background:var(--bg);margin-left:.2rem;
+}
+.mm-goto:hover{background:var(--bg2);color:var(--text)}
+
+/* Pipeline row */
+.pipe-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:.35rem;flex-wrap:wrap;margin-top:1.5rem;padding-top:1rem;
+  border-top:1px solid var(--border);
+}
+.pipe-node{
+  padding:.35rem .8rem;border-radius:99px;font-size:.72rem;font-weight:600;
+  border:1.5px solid;white-space:nowrap;
+}
+.pipe-node:nth-child(1){color:var(--accent1);border-color:var(--accent1);background:var(--a1-light)}
+.pipe-node:nth-child(3){color:var(--accent2);border-color:var(--accent2);background:var(--a2-light)}
+.pipe-node:nth-child(5){color:var(--accent3);border-color:var(--accent3);background:var(--a3-light)}
+.pipe-node:nth-child(7){color:var(--accent4);border-color:var(--accent4);background:var(--a4-light)}
+.pipe-node:nth-child(9){color:var(--accent5);border-color:var(--accent5);background:var(--a5-light)}
+.pipe-arrow{color:var(--text3);font-size:.65rem}
+
+/* === SECTIONS === */
+.layer-section{
+  padding:3.5rem 1.5rem 3rem;position:relative;
+  border-top:1px solid var(--border);
+  scroll-margin-top:52px;
+}
+.section-inner{max-width:720px;margin:0 auto}
+
+.layer-header{display:flex;align-items:flex-start;gap:1.2rem;margin-bottom:1.8rem;flex-wrap:wrap}
+.layer-number{
+  font-family:'Space Mono',monospace;font-size:3rem;font-weight:700;line-height:1;
+}
+.layer-0 .layer-number{color:var(--accent1)}.layer-1 .layer-number{color:var(--accent2)}
+.layer-2 .layer-number{color:var(--accent3)}.layer-3 .layer-number{color:var(--accent4)}
+.layer-4 .layer-number{color:var(--accent5)}
+.layer-meta{flex:1;min-width:240px}
+.layer-tag{
+  font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:.25rem;
+}
+.layer-0 .layer-tag{color:var(--accent1)}.layer-1 .layer-tag{color:var(--accent2)}
+.layer-2 .layer-tag{color:var(--accent3)}.layer-3 .layer-tag{color:var(--accent4)}
+.layer-4 .layer-tag{color:var(--accent5)}
+.layer-meta h2{font-size:clamp(1.2rem,2.2vw,1.6rem);font-weight:700;margin-bottom:.3rem}
+.layer-meta p{font-size:.85rem;color:var(--text2);max-width:520px}
+
+/* === SINGLE COLUMN CARDS === */
+.card-list{
+  display:flex;flex-direction:column;gap:.6rem;
+}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  transition:all .3s;position:relative;
+}
+.card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.card-head{
+  padding:.9rem 1.1rem .5rem;display:flex;justify-content:space-between;align-items:flex-start;
+  cursor:pointer;
+}
+.card-head h3{font-size:.92rem;font-weight:600;line-height:1.4}
+.card-head .en{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--text3);margin-top:1px}
+.card-toggle{
+  width:24px;height:24px;border-radius:50%;border:1px solid var(--border);
+  background:transparent;color:var(--text3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s;flex-shrink:0;font-size:.78rem;
+}
+.card.open .card-toggle{transform:rotate(45deg);border-color:var(--border2);background:var(--bg2)}
+.card-summary{padding:0 1.1rem .6rem;font-size:.78rem;color:var(--text2);line-height:1.7;cursor:pointer}
+.card-detail{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1)}
+.card.open .card-detail{max-height:600px}
+.card-detail-inner{padding:.5rem 1.1rem 1.1rem;border-top:1px solid var(--border);user-select:text}
+.card-detail-inner h4{font-size:.72rem;font-weight:600;margin-bottom:.35rem;letter-spacing:.04em;color:var(--text2)}
+.card-detail-inner p,.card-detail-inner li{font-size:.76rem;color:var(--text2);line-height:1.8}
+.card-detail-inner ul{padding-left:1rem;margin-top:.15rem}
+.card-detail-inner li{margin-bottom:.15rem}
+.tech-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
+.tech-tag{
+  font-size:.6rem;font-family:'Space Mono',monospace;
+  padding:.12rem .45rem;border-radius:99px;
+  border:1px solid var(--border);color:var(--text2);background:var(--bg);
+}
+
+/* layer card colors */
+.layer-0 .card-head h3{color:var(--accent1)}.layer-0 .card:hover{border-color:var(--accent1)}
+.layer-0 .tech-tag{border-color:rgba(10,138,92,.25);color:var(--accent1);background:var(--a1-light)}
+.layer-1 .card-head h3{color:var(--accent2)}.layer-1 .card:hover{border-color:var(--accent2)}
+.layer-1 .tech-tag{border-color:rgba(26,111,181,.25);color:var(--accent2);background:var(--a2-light)}
+.layer-2 .card-head h3{color:var(--accent3)}.layer-2 .card:hover{border-color:var(--accent3)}
+.layer-2 .tech-tag{border-color:rgba(123,79,196,.25);color:var(--accent3);background:var(--a3-light)}
+.layer-3 .card-head h3{color:var(--accent4)}.layer-3 .card:hover{border-color:var(--accent4)}
+.layer-3 .tech-tag{border-color:rgba(192,122,24,.25);color:var(--accent4);background:var(--a4-light)}
+.layer-4 .card-head h3{color:var(--accent5)}.layer-4 .card:hover{border-color:var(--accent5)}
+.layer-4 .tech-tag{border-color:rgba(196,63,92,.25);color:var(--accent5);background:var(--a5-light)}
+
+/* === FOOTER === */
+footer{
+  text-align:center;padding:2rem 1.5rem;
+  border-top:1px solid var(--border);
+  font-size:.68rem;color:var(--text3);background:var(--bg2);
+}
+
+/* === ANIMATIONS === */
+.reveal{opacity:0;transform:translateY(20px);transition:all .5s cubic-bezier(.4,0,.2,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:640px){
+  .layer-header{flex-direction:column;gap:.6rem}
+  .layer-number{font-size:2.2rem}
+  .flow-bar{gap:.06rem;padding:.5rem .3rem}
+  .flow-btn{font-size:.66rem;padding:.3rem .5rem}
+  .pipe-row{flex-direction:column;gap:.2rem}
+  .pipe-arrow{transform:rotate(90deg)}
+  .mm-leaves-inner{padding-left:2.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY NAV -->
+<nav class="flow-bar" id="flowBar">
+  <button class="flow-btn active" data-layer="top" onclick="navTo('layertop')">总览</button>
+  <span class="flow-arrow">·</span>
+  <button class="flow-btn" data-layer="0" onclick="navTo('layer0')">感官·输入</button>
+  <span class="flow-arrow">→</span>
+  <button class="flow-btn" data-layer="1" onclick="navTo('layer1')">神经·传输</button>
+  <span class="flow-arrow">→</span>
+  <button class="flow-btn" data-layer="2" onclick="navTo('layer2')">大脑·处理</button>
+  <span class="flow-arrow">→</span>
+  <button class="flow-btn" data-layer="3" onclick="navTo('layer3')">感知·现实</button>
+  <span class="flow-arrow">→</span>
+  <button class="flow-btn" data-layer="4" onclick="navTo('layer4')">共情·高阶</button>
+</nav>
+
+<!-- ========== COLLAPSIBLE MIND MAP ========== -->
+<section class="mind-map-hero" id="layertop">
+<h1>感知智能技术图谱</h1>
+<div class="subtitle">从多维传感器采集，经高速传输与AI处理，到扩展现实呈现与情感共情——五层架构，系统梳理感知智能的完整技术脉络。点击各层展开技术模块，点击「查看详情」深入了解。</div>
+
+<div class="mm-tree">
+
+  <!-- Layer 0 -->
+  <div class="mm-branch" data-l="0">
+    <div class="mm-branch-head" onclick="toggleBranch(this.parentElement)">
+      <div class="mm-branch-num">01</div>
+      <div class="mm-branch-title">
+        <strong>感官·输入层</strong>
+        <span>Input — 多维传感器</span>
+      </div>
+      <div class="mm-branch-arrow">▸</div>
+    </div>
+    <div class="mm-leaves"><div class="mm-leaves-inner">
+      <span class="mm-leaf">视觉传感器</span>
+      <span class="mm-leaf">IMU 惯性运动</span>
+      <span class="mm-leaf">触觉与力传感</span>
+      <span class="mm-leaf">声学与环境</span>
+      <span class="mm-leaf">生理信号 EEG/EMG</span>
+      <span class="mm-goto" onclick="event.stopPropagation();navTo('layer0')">查看详情 →</span>
+    </div></div>
+  </div>
+
+  <!-- Layer 1 -->
+  <div class="mm-branch" data-l="1">
+    <div class="mm-branch-head" onclick="toggleBranch(this.parentElement)">
+      <div class="mm-branch-num">02</div>
+      <div class="mm-branch-title">
+        <strong>神经·传输层</strong>
+        <span>Transmit — 边缘计算 · PaaS · 协议</span>
+      </div>
+      <div class="mm-branch-arrow">▸</div>
+    </div>
+    <div class="mm-leaves"><div class="mm-leaves-inner">
+      <span class="mm-leaf">MEC 边缘计算</span>
+      <span class="mm-leaf">云渲染 / CDN</span>
+      <span class="mm-leaf">PaaS / Serverless</span>
+      <span class="mm-leaf">Docker / K8s</span>
+      <span class="mm-leaf">5G / 6G</span>
+      <span class="mm-leaf">WebRTC</span>
+      <span class="mm-leaf">MQTT</span>
+      <span class="mm-leaf">HTTP/3 QUIC</span>
+      <span class="mm-goto" onclick="event.stopPropagation();navTo('layer1')">查看详情 →</span>
+    </div></div>
+  </div>
+
+  <!-- Layer 2 -->
+  <div class="mm-branch" data-l="2">
+    <div class="mm-branch-head" onclick="toggleBranch(this.parentElement)">
+      <div class="mm-branch-num">03</div>
+      <div class="mm-branch-title">
+        <strong>大脑·处理层</strong>
+        <span>Process — AI · 空间认知 · 深度学习</span>
+      </div>
+      <div class="mm-branch-arrow">▸</div>
+    </div>
+    <div class="mm-leaves"><div class="mm-leaves-inner">
+      <span class="mm-leaf">LLM 语义理解</span>
+      <span class="mm-leaf">知识图谱</span>
+      <span class="mm-leaf">V-SLAM 定位</span>
+      <span class="mm-leaf">NeRF 3D重建</span>
+      <span class="mm-leaf">YOLO 目标检测</span>
+      <span class="mm-leaf">姿态估计</span>
+      <span class="mm-leaf">生成式AI</span>
+      <span class="mm-leaf">ASR / TTS</span>
+      <span class="mm-goto" onclick="event.stopPropagation();navTo('layer2')">查看详情 →</span>
+    </div></div>
+  </div>
+
+  <!-- Layer 3 -->
+  <div class="mm-branch" data-l="3">
+    <div class="mm-branch-head" onclick="toggleBranch(this.parentElement)">
+      <div class="mm-branch-num">04</div>
+      <div class="mm-branch-title">
+        <strong>感知·现实层</strong>
+        <span>Present — XR · 全息 · 触觉 · 投影</span>
+      </div>
+      <div class="mm-branch-arrow">▸</div>
+    </div>
+    <div class="mm-leaves"><div class="mm-leaves-inner">
+      <span class="mm-leaf">VR 虚拟现实</span>
+      <span class="mm-leaf">AR 增强现实</span>
+      <span class="mm-leaf">MR 混合现实</span>
+      <span class="mm-leaf">全息裸眼3D</span>
+      <span class="mm-leaf">空间音频</span>
+      <span class="mm-leaf">触觉反馈</span>
+      <span class="mm-leaf">投影映射</span>
+      <span class="mm-leaf">数字孪生</span>
+      <span class="mm-goto" onclick="event.stopPropagation();navTo('layer3')">查看详情 →</span>
+    </div></div>
+  </div>
+
+  <!-- Layer 4 -->
+  <div class="mm-branch" data-l="4">
+    <div class="mm-branch-head" onclick="toggleBranch(this.parentElement)">
+      <div class="mm-branch-num">05</div>
+      <div class="mm-branch-title">
+        <strong>共情·高阶层</strong>
+        <span>Empathize — 情感计算 · BCI · 心理建模</span>
+      </div>
+      <div class="mm-branch-arrow">▸</div>
+    </div>
+    <div class="mm-leaves"><div class="mm-leaves-inner">
+      <span class="mm-leaf">面部表情识别</span>
+      <span class="mm-leaf">语音情感分析</span>
+      <span class="mm-leaf">情感TTS</span>
+      <span class="mm-leaf">Blendshape驱动</span>
+      <span class="mm-leaf">脑机接口 BCI</span>
+      <span class="mm-leaf">神经解码</span>
+      <span class="mm-leaf">用户画像</span>
+      <span class="mm-leaf">行为预测</span>
+      <span class="mm-goto" onclick="event.stopPropagation();navTo('layer4')">查看详情 →</span>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- Pipeline -->
+<div class="pipe-row">
+  <span class="pipe-node">感官采集</span><span class="pipe-arrow">→</span>
+  <span class="pipe-node">高速传输</span><span class="pipe-arrow">→</span>
+  <span class="pipe-node">智能处理</span><span class="pipe-arrow">→</span>
+  <span class="pipe-node">多模态呈现</span><span class="pipe-arrow">→</span>
+  <span class="pipe-node">情感共情</span>
+</div>
+</section>
+
+<!-- ========== LAYER 0: INPUT ========== -->
+<section class="layer-section layer-0" id="layer0">
+<div class="section-inner">
+  <div class="layer-header reveal">
+    <div class="layer-number">01</div>
+    <div class="layer-meta">
+      <div class="layer-tag">Input Layer</div>
+      <h2>感官（输入层）— 多维传感器</h2>
+      <p>如同人体的眼耳鼻舌身，通过各类传感器捕获物理世界的多维信息，将模拟信号转化为数字信号。</p>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>视觉传感器</h3><div class="en">Vision Sensors</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">RGB摄像头、ToF深度相机、双目/结构光、LiDAR、事件相机。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>RGB 摄像头</b>：最基础的图像采集，AR人脸识别、手势追踪的输入源</li>
+          <li><b>ToF 深度相机</b>：通过飞行时间测量深度，iPhone FaceID 的原理</li>
+          <li><b>双目/结构光</b>：模拟人眼立体视觉，用于空间重建和SLAM定位</li>
+          <li><b>LiDAR</b>：激光点云扫描，精度极高，自动驾驶和AR环境理解的核心</li>
+          <li><b>事件相机</b>：只记录像素变化，超低延迟，适合高速运动场景</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">OpenCV</span><span class="tech-tag">RealSense</span><span class="tech-tag">ARKit</span><span class="tech-tag">LiDAR</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>惯性与运动传感器</h3><div class="en">IMU & Motion</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">加速度计、陀螺仪、磁力计（合称IMU），追踪设备和人体的姿态与运动。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>6DoF 追踪</b>：六自由度（位移XYZ + 旋转RPY），VR头显的基础能力</li>
+          <li><b>传感器融合</b>：融合多传感器数据，卡尔曼滤波消除漂移误差</li>
+          <li><b>骨骼追踪</b>：通过IMU阵列或视觉方案还原人体骨骼姿态</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">IMU</span><span class="tech-tag">AHRS</span><span class="tech-tag">Kalman Filter</span><span class="tech-tag">6DoF</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>触觉与力传感器</h3><div class="en">Haptic & Force</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">压力、力矩、振动传感器，让系统感知物理接触和力反馈。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>压阻/压电传感器</b>：感知按压力度，Force Touch 的原理</li>
+          <li><b>柔性电子皮肤</b>：可穿戴柔性传感阵列，采集大面积接触分布</li>
+          <li><b>力反馈执行器</b>：振动马达 ERM/LRA，提供触觉反馈闭环</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">e-skin</span><span class="tech-tag">Force Touch</span><span class="tech-tag">Haptic Engine</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>声学与环境传感器</h3><div class="en">Audio & Environment</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">麦克风阵列、温湿度、气压、光线传感器，采集听觉与环境上下文。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>麦克风阵列</b>：多麦拾音 + 波束成形，定位声源方向</li>
+          <li><b>超声波传感</b>：近距离高精度测距，手势识别辅助</li>
+          <li><b>环境光 & 气压</b>：自动调节AR画面亮度、辅助高度定位</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Beamforming</span><span class="tech-tag">MEMS Mic</span><span class="tech-tag">Spatial Audio</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>生理信号传感器</h3><div class="en">Biometric Sensors</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">心率PPG、脑电EEG、肌电EMG、皮肤电导GSR，采集生理与情绪状态。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>PPG 光电容积</b>：智能手表测心率原理，反映压力水平</li>
+          <li><b>EEG 脑电</b>：采集头皮微弱电信号，注意力检测、脑机接口</li>
+          <li><b>EMG 肌电</b>：检测肌肉电活动，免接触手势控制</li>
+          <li><b>GSR 皮电</b>：皮肤电导变化反映情绪唤醒程度</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">BCI</span><span class="tech-tag">EEG</span><span class="tech-tag">EMG</span><span class="tech-tag">PPG</span></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== LAYER 1: TRANSMISSION ========== -->
+<section class="layer-section layer-1" id="layer1">
+<div class="section-inner">
+  <div class="layer-header reveal">
+    <div class="layer-number">02</div>
+    <div class="layer-meta">
+      <div class="layer-tag">Transmission Layer</div>
+      <h2>神经（传输层）— 边缘计算·平台即服务·网络协议</h2>
+      <p>如同神经系统高速传递信号，将海量数据以低延迟、高可靠方式送达处理中心，同时提供弹性算力。</p>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>边缘计算</h3><div class="en">Edge Computing</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">MEC、雾计算、边缘AI推理、云渲染、CDN——将算力下沉到用户身边。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>关键技术</h4>
+        <ul>
+          <li><b>MEC 多接入边缘计算</b>：5G基站旁部署算力，延迟压缩到5ms以内</li>
+          <li><b>雾计算</b>：终端与云之间构建多级计算节点，按紧急程度分层处理</li>
+          <li><b>边缘AI推理</b>：端侧NPU直接跑轻量模型，手势识别无需上云</li>
+          <li><b>云渲染/串流</b>：云端GPU渲染3D画面，视频流推送给轻量终端</li>
+          <li><b>CDN 内容分发</b>：3D资源缓存到全球边缘节点，减少加载延迟</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">MEC</span><span class="tech-tag">CloudXR</span><span class="tech-tag">Edge TPU</span><span class="tech-tag">CDN</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>平台即服务 PaaS</h3><div class="en">Platform as a Service</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">Serverless、容器化Docker/K8s、XR开发平台、CI/CD持续交付。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>关键技术</h4>
+        <ul>
+          <li><b>Serverless / FaaS</b>：函数即服务，按触发次数计费，无需预置服务器</li>
+          <li><b>容器化 Docker / K8s</b>：应用标准打包，弹性伸缩，任何环境一致运行</li>
+          <li><b>XR 开发平台</b>：Unity Cloud、Unreal Pixel Streaming 等空间计算云服务</li>
+          <li><b>CI/CD</b>：代码提交后自动测试、构建、部署，缩短迭代周期</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">AWS Lambda</span><span class="tech-tag">Docker</span><span class="tech-tag">K8s</span><span class="tech-tag">Unity Cloud</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>5G / 6G 移动通信</h3><div class="en">Mobile Network</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">eMBB大带宽、URLLC超低延迟、mMTC海量连接——XR无线化的核心。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>三大场景</h4>
+        <ul>
+          <li><b>eMBB</b>：下行峰值20Gbps，8K全景视频、云VR串流</li>
+          <li><b>URLLC</b>：端到端1ms，远程手术、工业AR实时操控</li>
+          <li><b>mMTC</b>：每km²百万终端，智能展厅数百传感器同时工作</li>
+        </ul>
+        <p style="margin-top:.4rem">6G愿景：太赫兹频段、通感一体、AI原生网络、空天地海覆盖。</p>
+        <div class="tech-tags"><span class="tech-tag">5G NR</span><span class="tech-tag">mmWave</span><span class="tech-tag">Network Slicing</span><span class="tech-tag">6G</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>实时通信协议</h3><div class="en">Real-time Protocols</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">WebRTC、WebSocket、MQTT、HTTP/3 (QUIC)、gRPC——数据传输的规则。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>协议对比</h4>
+        <ul>
+          <li><b>WebRTC</b>：浏览器间P2P音视频直连，多人AR协作常用</li>
+          <li><b>WebSocket</b>：全双工长连接，服务器可主动推送实时状态</li>
+          <li><b>MQTT</b>：发布/订阅轻量协议，物联网传感器首选</li>
+          <li><b>HTTP/3 (QUIC)</b>：基于UDP多路复用，解决TCP队头阻塞</li>
+          <li><b>gRPC</b>：高性能远程调用框架，微服务通信效率极高</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">WebRTC</span><span class="tech-tag">MQTT</span><span class="tech-tag">QUIC</span><span class="tech-tag">gRPC</span></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== LAYER 2: PROCESSING ========== -->
+<section class="layer-section layer-2" id="layer2">
+<div class="section-inner">
+  <div class="layer-header reveal">
+    <div class="layer-number">03</div>
+    <div class="layer-meta">
+      <div class="layer-tag">Processing Layer</div>
+      <h2>大脑（处理层）— 语义理解·空间认知·深度学习</h2>
+      <p>如同大脑对感官信号进行高级加工，利用AI技术对输入数据进行理解、推理和决策。</p>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>语义理解 NLP/NLU</h3><div class="en">Semantic Understanding</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">大语言模型LLM、意图识别、知识图谱、多模态理解——机器理解人类语言。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>大语言模型 LLM</b>：Transformer架构，上下文理解、文本生成、多轮对话</li>
+          <li><b>意图识别 + 槽填充</b>：理解用户想做什么以及涉及哪些实体</li>
+          <li><b>知识图谱</b>：结构化世界知识网络，支持推理和问答</li>
+          <li><b>多模态理解</b>：同时理解文本、图像、音频，跨模态推理</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Transformer</span><span class="tech-tag">BERT</span><span class="tech-tag">GPT</span><span class="tech-tag">RAG</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>空间认知与 SLAM</h3><div class="en">Spatial Cognition</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">V-SLAM视觉定位、3D重建NeRF、语义分割、空间锚点——设备理解环境。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>V-SLAM</b>：摄像头实时构建环境地图并同步定位设备位置</li>
+          <li><b>3D 重建</b>：NeRF / Gaussian Splatting 从多角度还原三维场景</li>
+          <li><b>语义分割</b>：像素级识别场景物体类别（墙壁、桌子、人）</li>
+          <li><b>空间锚点</b>：物理空间标记虚拟坐标，多设备共享AR场景</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">SLAM</span><span class="tech-tag">NeRF</span><span class="tech-tag">ARCore</span><span class="tech-tag">Spatial Anchor</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>深度学习与计算机视觉</h3><div class="en">Deep Learning & CV</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">CNN/ViT图像特征、YOLO目标检测、姿态估计、生成式AI。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>CNN / ViT</b>：卷积网络与视觉Transformer，图像特征提取双路线</li>
+          <li><b>YOLO 目标检测</b>：实时定位识别画面中物体，AR标签叠加前提</li>
+          <li><b>姿态估计</b>：从图像推断人体/手部关键点，驱动虚拟化身</li>
+          <li><b>生成式AI</b>：Diffusion模型从文本生成图像、纹理、3D资产</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">PyTorch</span><span class="tech-tag">YOLO</span><span class="tech-tag">MediaPipe</span><span class="tech-tag">Diffusion</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>音频智能</h3><div class="en">Audio Intelligence</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">ASR语音识别、TTS语音合成、声纹识别、音频事件检测。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>ASR 语音识别</b>：语音转文字，Whisper等端到端模型</li>
+          <li><b>TTS 语音合成</b>：文本生成自然语音，数字人的声音来源</li>
+          <li><b>声纹识别</b>：通过声音特征识别身份</li>
+          <li><b>音频事件检测</b>：判断环境声音类型（掌声、警报、脚步）</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Whisper</span><span class="tech-tag">TTS</span><span class="tech-tag">Speaker ID</span></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== LAYER 3: REALITY ========== -->
+<section class="layer-section layer-3" id="layer3">
+<div class="section-inner">
+  <div class="layer-header reveal">
+    <div class="layer-number">04</div>
+    <div class="layer-meta">
+      <div class="layer-tag">Reality Layer</div>
+      <h2>感知（现实层）— 扩展现实与多模态呈现</h2>
+      <p>不只VR/AR/MR，还包括全息、空间音频、触觉反馈、投影映射——一切"让人感知数字信息"的技术。</p>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>VR 虚拟现实</h3><div class="en">Virtual Reality</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">完全沉浸式虚拟环境——HMD头显、Inside-Out追踪、注视点渲染、全身动捕。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>HMD 头显</b>：双屏/Pancake光学，高分辨率低余晖近眼显示</li>
+          <li><b>Inside-Out 追踪</b>：头显自带摄像头空间定位，无需外部基站</li>
+          <li><b>Foveated Rendering</b>：眼动追踪+中心高分辨率渲染，降低GPU负载</li>
+          <li><b>全身动捕</b>：追踪手指、身体、面部表情，驱动虚拟化身</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Quest</span><span class="tech-tag">SteamVR</span><span class="tech-tag">Pancake</span><span class="tech-tag">Eye Tracking</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>AR 增强现实</h3><div class="en">Augmented Reality</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">虚拟信息叠加到真实世界——光波导、空间计算、遮挡处理、手机AR。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>光波导</b>：AR眼镜核心光学元件，将微型屏幕光导入人眼</li>
+          <li><b>空间计算</b>：理解物理环境几何和语义，让虚拟物体"落地"</li>
+          <li><b>遮挡处理</b>：虚拟物体被真实物体挡住时正确渲染遮挡关系</li>
+          <li><b>手机AR</b>：ARKit/ARCore让普通手机也能做AR</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">ARKit</span><span class="tech-tag">ARCore</span><span class="tech-tag">Waveguide</span><span class="tech-tag">Spatial Computing</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>MR 混合现实</h3><div class="en">Mixed Reality</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">虚实深度融合——空间映射、Passthrough、共定位、手势与眼动交互。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>空间映射</b>：实时扫描房间3D网格，虚拟球从真实桌面弹开</li>
+          <li><b>Passthrough</b>：VR头显透视现实，在VR中看到真实环境</li>
+          <li><b>共定位</b>：多人在同一物理空间共享虚拟场景</li>
+          <li><b>手势 & 眼动</b>：用手抓取虚拟物体，用眼神选择目标</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Vision Pro</span><span class="tech-tag">HoloLens</span><span class="tech-tag">Passthrough</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>全息与裸眼3D</h3><div class="en">Holographic Display</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">光场显示、体积显示、全息干涉——无需设备即可看到立体影像。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>光场显示</b>：记录并重放光线方向，实现真正立体视差</li>
+          <li><b>体积显示</b>：三维空间生成发光点阵，Looking Glass 系列</li>
+          <li><b>全息干涉</b>：激光干涉原理记录和再现三维光波场</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Light Field</span><span class="tech-tag">Looking Glass</span><span class="tech-tag">Hologram</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>空间音频与触觉反馈</h3><div class="en">Spatial Audio & Haptics</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">HRTF空间定位、Ambisonics全景声、触觉手套、全身触觉背心。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>HRTF</b>：模拟声音到达双耳的时差和频率差，制造空间方位感</li>
+          <li><b>Ambisonics</b>：球面谐波编码3D音频，自由旋转头部声场不变</li>
+          <li><b>触觉手套</b>：气动/电刺激/振动阵列，模拟抓握和纹理</li>
+          <li><b>触觉背心</b>：bHaptics TactSuit，全身范围触觉反馈</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">HRTF</span><span class="tech-tag">Ambisonics</span><span class="tech-tag">bHaptics</span><span class="tech-tag">HaptX</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>投影映射与数字孪生</h3><div class="en">Projection & Digital Twin</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">多投影融合贴合曲面建筑、数字孪生实时同步、LED沉浸空间CAVE。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>投影映射</b>：多投影仪融合+几何校正，画面精确贴合曲面，新媒体艺术展常用</li>
+          <li><b>数字孪生</b>：物理世界的精确虚拟副本，实时数据驱动同步</li>
+          <li><b>LED 沉浸空间</b>：CAVE/穹顶/LED Volume虚拟制片，环绕式显示</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">TouchDesigner</span><span class="tech-tag">MadMapper</span><span class="tech-tag">CAVE</span><span class="tech-tag">Digital Twin</span></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ========== LAYER 4: EMPATHY ========== -->
+<section class="layer-section layer-4" id="layer4">
+<div class="section-inner">
+  <div class="layer-header reveal">
+    <div class="layer-number">05</div>
+    <div class="layer-meta">
+      <div class="layer-tag">Empathy Layer</div>
+      <h2>共情（高阶层）— 情感计算</h2>
+      <p>最高层追求理解"感受是什么"——感知、识别、理解和回应人的情绪状态，实现人机共情。</p>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>情绪识别</h3><div class="en">Emotion Recognition</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">面部表情FER、语音情感、文本情感分析、生理信号情绪推断。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>FER 面部表情</b>：基于面部动作单元AU编码，识别微表情和情绪类别</li>
+          <li><b>语音情感</b>：从语调、语速、能量等声学特征推断情绪</li>
+          <li><b>文本情感</b>：NLP情感极性判断，舆情和用户反馈分析</li>
+          <li><b>生理信号</b>：HRV心率变异性、GSR皮电等客观指标判断唤醒水平</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">AU Coding</span><span class="tech-tag">Valence-Arousal</span><span class="tech-tag">Affectiva</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>情感生成与表达</h3><div class="en">Affective Generation</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">情感语音合成、虚拟形象表情驱动、情感适应性交互、共情对话。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>情感TTS</b>：在语音合成中注入情绪参数，让合成语音有喜怒哀乐</li>
+          <li><b>Blendshape驱动</b>：将情感状态映射为数字人面部动画</li>
+          <li><b>情感适应</b>：根据用户情绪实时调整对话策略、UI氛围或音乐</li>
+          <li><b>共情对话</b>：大模型结合心理学模型展现理解和关怀</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Emotional TTS</span><span class="tech-tag">Blendshape</span><span class="tech-tag">Empathetic AI</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>脑机接口与意念交互</h3><div class="en">BCI & Neural Interface</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">非侵入式EEG头带、侵入式Neuralink、SSVEP/P300、神经解码。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>非侵入式BCI</b>：EEG头带通过脑电波控制设备，消费级场景</li>
+          <li><b>侵入式BCI</b>：Neuralink植入电极，高精度读取神经元信号</li>
+          <li><b>SSVEP / P300</b>：视觉诱发电位范式，意念打字常用</li>
+          <li><b>神经解码</b>：将大脑活动解码为图像、语音或运动意图</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">Neuralink</span><span class="tech-tag">OpenBCI</span><span class="tech-tag">SSVEP</span><span class="tech-tag">Neural Decoding</span></div>
+      </div></div>
+    </div>
+    <div class="card reveal">
+      <div class="card-head" onclick="toggleCard(this.parentElement)"><div><h3>心理建模与行为预测</h3><div class="en">Psych Modeling</div></div><button class="card-toggle">+</button></div>
+      <div class="card-summary" onclick="toggleCard(this.parentElement)">用户画像、注意力分析、行为预测、个性化适配。</div>
+      <div class="card-detail"><div class="card-detail-inner">
+        <h4>核心技术</h4>
+        <ul>
+          <li><b>用户画像</b>：多维标签+行为序列构建动态用户模型</li>
+          <li><b>注意力分析</b>：眼动追踪+停留时长，推断用户兴趣焦点</li>
+          <li><b>行为预测</b>：序列模型预测用户下一步操作，提前加载</li>
+          <li><b>个性化适配</b>：根据认知风格调整教学或展示策略</li>
+        </ul>
+        <div class="tech-tags"><span class="tech-tag">User Modeling</span><span class="tech-tag">Eye Tracking</span><span class="tech-tag">Personalization</span></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+  <p>感知智能技术图谱 · 由 Claude AI 生成 · 2026</p>
+</footer>
+
+<script>
+/* Card toggle — only toggle the clicked card */
+function toggleCard(el){
+  el.classList.toggle('open');
+}
+
+/* Mind map branch toggle */
+function toggleBranch(el){
+  el.classList.toggle('open');
+}
+
+/* Scroll with offset for sticky nav */
+function navTo(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const navH=document.getElementById('flowBar').offsetHeight;
+  const y=el.getBoundingClientRect().top+window.pageYOffset-navH-8;
+  window.scrollTo({top:y,behavior:'smooth'});
+}
+
+/* Active nav — use scroll position directly for reliability */
+function updateActiveNav(){
+  const navH=document.getElementById('flowBar').offsetHeight+20;
+  const ids=['layertop','layer0','layer1','layer2','layer3','layer4'];
+  const keys=['top','0','1','2','3','4'];
+  let activeKey='top';
+  for(let i=ids.length-1;i>=0;i--){
+    const el=document.getElementById(ids[i]);
+    if(el&&el.getBoundingClientRect().top<=navH){
+      activeKey=keys[i];
+      break;
+    }
+  }
+  document.querySelectorAll('.flow-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.querySelector(`.flow-btn[data-layer="${activeKey}"]`);
+  if(btn)btn.classList.add('active');
+}
+window.addEventListener('scroll',updateActiveNav,{passive:true});
+updateActiveNav();
+
+/* Reveal on scroll */
+const revObs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('visible'),i*50);
+      revObs.unobserve(e.target);
+    }
+  });
+},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+</script>
+</body>
+</html>
